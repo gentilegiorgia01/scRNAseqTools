@@ -114,6 +114,7 @@ run_pca_analysis <- function(seurat_obj) {
   seurat_obj <- ScaleData(seurat_obj)
   seurat_obj <- RunPCA(seurat_obj, npcs = 20)
   ElbowPlot(seurat_obj, ndims = 20)
+  return(seuratobj)
 }
 ```
 ### UMAP — run_umap_embedding()
