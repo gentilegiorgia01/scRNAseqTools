@@ -1,0 +1,155 @@
+---
+title: "scRNA-seq Analysis Workflow"
+author: "Giorgia Gentile"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scRNA-seq Analysis Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+
+library(scRNAseqTools)  # Il tuo pacchetto, quando installato
+library(Seurat)
+library(ggplot2)
+library(dplyr)
+```
+
+# 1. Gene Annotation
+
+```{r gene-annotation}
+seurat_obj <- scRNAseqTools::annotate_protein_coding(
+  data_path = "/home/rstudio/data/filtered_feature_bc_matrix",
+  gtf_path = "/home/rstudio/data/Homo_sapiens.GRCh38.111.gtf/Homo_sapiens.GRCh38.111.gtf"
+)
+```
+
+*Abbiamo filtrato il dataset per mantenere solo i geni codificanti, secondo le annotazioni del file GTF.*
+
+# Debug del Seurat object
+print("=== DEBUG INFO ===")
+print(paste("Seurat object class:", class(seurat_obj)))
+print(paste("Default assay:", DefaultAssay(seurat_obj)))
+print(paste("Available assays:", paste(names(seurat_obj@assays), collapse = ", ")))
+
+# Controlla i dati dell'assay
+counts_debug <- GetAssayData(seurat_obj, slot = "counts")
+print(paste("Counts class:", class(counts_debug)))
+print(paste("Counts dimensions:", paste(dim(counts_debug), collapse = " x ")))
+print(paste("Is matrix?", is.matrix(counts_debug)))
+print(paste("Is sparse?", inherits(counts_debug, c("dgCMatrix", "dgTMatrix"))))
+print("==================")
+
+# 2. Gene Expression Summary
+
+```{r gene-summary, fig.width=8, fig.height=6}
+# Carica il Seurat object
+seurat_obj <- readRDS("/home/rstudio/data/seurat_obj.rds")
+
+# Calcola il summary dell'espressione genica
+seurat_obj <- calculate_expression_summary(seurat_obj)
+
+# Crea e mostra il violin plot
+p <- plot_expression_violin(seurat_obj)
+print(p)
+```
+
+# 3. Gene Filtering
+
+```{r gene-filtering}
+seurat_obj <- filter_unwanted_genes(
+  seurat_obj,
+  gtf_path = "/home/rstudio/data/Homo_sapiens.GRCh38.111.gtf/Homo_sapiens.GRCh38.111.gtf"
+)
+```
+
+*Abbiamo rimosso geni mitocondriali, proteine ribosomiali e pseudogeni ribosomiali.*
+
+# 4. PCA
+
+```{r pca-analysis, results='hide', message=FALSE, warning=FALSE}
+# Usa le funzioni ottimizzate invece del codice standard
+seurat_obj <- perform_optimized_normalization(
+  seurat_obj, 
+  method = "LogNormalize",
+  verbose = TRUE
+)
+
+seurat_obj <- perform_optimized_pca(
+  seurat_obj,
+  npcs = 20,  # Riduci da 50 a 20 per test
+  verbose = TRUE
+)
+```
+
+*La PCA ci permette di identificare la varianza spiegata dai primi 20 componenti.*
+
+# 5. UMAP
+
+```{r umap}
+seurat_obj <- run_umap_and_plot(
+  seurat_obj,
+  n_pcs = 15,
+  save_path_plot = "output/umap_plot.png"
+)
+```
+
+*Abbiamo usato i primi 15 PC (basati sull'elbow plot) per generare l'embedding UMAP.*
+
+# 6. Clustering
+
+```{r clustering}
+seurat_obj <- run_clustering_and_plot(
+  seurat_obj,
+  n_pcs = 15,
+  resolution = 0.5,
+  save_path_plot = "output/cluster_plot.png"
+)
+```
+
+*Abbiamo applicato il clustering Louvain con risoluzione 0.5. Il numero di cluster emersi è visualizzato su UMAP.*
+
+# 7. Cell Type Annotation
+
+```{r annotation}
+seurat_obj <- annotate_cell_types_singleR(
+  seurat_obj,
+  save_path_plot = "output/umap_celltype_annotations.png",
+  save_path_csv = "output/cluster_vs_celltype.csv",
+  save_path_rds = "/home/rstudio/data/seurat_obj.annotated.rds"
+)
+```
+
+*L'annotazione è stata eseguita con SingleR usando l'Human Primary Cell Atlas.*
+
+# 8. Tissue Origin Inference
+
+```{r tissue-inference}
+results <- infer_tissue_origin(
+  seurat_obj,
+  save_path_markers = "output/top_markers_per_cluster.csv",
+  save_path_rds = "results/seurat_analysis_complete.rds"
+)
+```
+
+*Le analisi indicano che il tessuto di origine più probabile è:*
+
+```{r print-hypothesis}
+results$tissue_hypothesis
+```
+
+# Final Summary
+
+```{r final-summary}
+cat("Totale cellule:", ncol(seurat_obj), "\n")
+cat("Totale geni filtrati:", nrow(seurat_obj), "\n")
+cat("Numero di cluster:", length(unique(seurat_obj$seurat_clusters)), "\n")
+cat("Numero di tipi cellulari annotati:", length(unique(seurat_obj$cell_type)), "\n")
+```
+
+*Analisi completata. I risultati sono stati salvati nel file RDS finale.*
+

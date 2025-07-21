@@ -1,0 +1,26 @@
+Package: scRNAseqTools
+Title: Single Cell RNA-seq Analysis Tools
+Version: 0.1.0
+Authors@R: 
+    person( "Giorgia", "Gentile", email = "gentilegiorgia01@gmail.com", role = c("aut", "cre"))
+Description: The implemented functions guide users through a complete analysis workflow, from gene annotation to biological interpretation
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Imports: 
+    Seurat,
+    SingleR,
+    celldex,
+    dplyr,
+    ggplot2,
+    methods,
+    rtracklayer,
+    uwot,
+    Matrix,
+    viridis
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr

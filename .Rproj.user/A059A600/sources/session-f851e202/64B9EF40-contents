@@ -1,0 +1,89 @@
+#' Calculate Gene Expression Summary
+#'
+#' For each cell, calculates the number of genes with expression >= threshold UMIs
+#' and adds this information to the Seurat object metadata.
+#'
+#' @param seurat_obj Seurat object
+#' @param threshold Numeric. Minimum UMI count threshold (default: 3)
+#'
+#' @return Seurat object with added metadata column 'genes_detected'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' seurat_obj <- calculate_expression_summary(seurat_obj, threshold = 3)
+#' }
+#'
+#' @importFrom Seurat GetAssayData
+calculate_expression_summary <- function(seurat_obj, threshold = 3) {
+  if (!methods::is(seurat_obj, "Seurat")) {
+    stop("Input must be a Seurat object")
+  }
+
+  if (!is.numeric(threshold) || threshold < 0) {
+    stop("Threshold must be a positive numeric value")
+  }
+
+  message("Calculating gene expression summary with threshold >= ", threshold, " UMIs...")
+
+  counts <- Seurat::GetAssayData(seurat_obj, slot = "counts")
+
+  if (length(dim(counts)) != 2) {
+    stop("The count matrix must be two-dimensional")
+  }
+
+  gene_counts_per_cell <- colSums(counts >= threshold)
+  seurat_obj$genes_detected <- gene_counts_per_cell
+
+  summary_stats <- summary(gene_counts_per_cell)
+  seurat_obj@misc$expression_summary <- list(
+    threshold = threshold,
+    summary_stats = summary_stats,
+    total_cells = length(gene_counts_per_cell)
+  )
+
+  return(seurat_obj)
+}
+
+#' Plot Gene Expression Distribution
+#'
+#' Creates a violin plot showing the distribution of detected genes per cell.
+#'
+#' @param seurat_obj Seurat object with 'genes_detected' in metadata
+#' @param title Character. Plot title (default: auto-generated)
+#'
+#' @return ggplot2 object
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' p <- plot_expression_violin(seurat_obj)
+#' print(p)
+#' }
+#'
+#' @importFrom ggplot2 ggplot aes geom_violin geom_boxplot labs theme_minimal
+plot_expression_violin <- function(seurat_obj, title = NULL) {
+  if (!methods::is(seurat_obj, "Seurat")) {
+    stop("Input must be a Seurat object")
+  }
+
+  if (!"genes_detected" %in% colnames(seurat_obj@meta.data)) {
+    stop("genes_detected not found in metadata. Run calculate_expression_summary() first.")
+  }
+
+  threshold <- ifelse(is.null(seurat_obj@misc$expression_summary),
+                      3,
+                      seurat_obj@misc$expression_summary$threshold)
+
+  if (is.null(title)) {
+    title <- paste("Distribution of Genes Detected per Cell\n(Genes with >=", threshold, "UMIs)")
+  }
+
+  p <- ggplot2::ggplot(seurat_obj@meta.data, ggplot2::aes(x = "", y = genes_detected)) +
+    ggplot2::geom_violin(fill = "lightblue", alpha = 0.7) +
+    ggplot2::geom_boxplot(width = 0.1, outlier.shape = NA) +
+    ggplot2::labs(title = title, x = "", y = "Number of Genes Detected") +
+    ggplot2::theme_minimal()
+
+  return(p)
+}
