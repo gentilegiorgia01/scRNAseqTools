@@ -13,33 +13,47 @@ The project includes a custom `Dockerfile` based on `rocker/rstudio:4.3.0` to en
 ## Dockerfile Summary
 
 #### Dockerfile for R package development
+```r
 FROM rocker/rstudio:4.3.0
-
+```
 
 #### Install system dependencies required by R packages
+```r
 RUN apt-get update && apt-get install -y \
     libhdf5-dev libcurl4-openssl-dev libssl-dev libxml2-dev libgit2-dev \
     libudunits2-dev libgdal-dev libfontconfig1-dev libharfbuzz-dev libfribidi-dev \
     libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev && \
     rm -rf /var/lib/apt/lists/*
+```
 
 #### Install core CRAN packages for R package development
+```r
 RUN R -e "install.packages(c('devtools', 'usethis', 'roxygen2', 'testthat', 'knitr', 'rmarkdown', 'BiocManager'))"
+```
+
 #### Install Bioconductor packages for single-cell analysis
+```r
 RUN R -e "BiocManager::install(c('Seurat', 'SingleCellExperiment', 'scater', 'scran', 'SingleR', 'celldex', 'rtracklayer', 'BiocStyle'))"
+```
+
 #### Install supporting CRAN packages
+```r
 RUN R -e "install.packages(c('dplyr', 'ggplot2', 'plotly', 'viridis', 'cowplot', 'patchwork', 'Matrix', 'DT'))"
+```
 
 #### Expose RStudio Server on port 8787
+```r
 WORKDIR /home/rstudio/workspace
 EXPOSE 8787
+```
 
 #### Build and run
+```r
 docker build -t scrnaseqtools .
 docker run -e PASSWORD=yourpassword -p 8787:8787 -v ${PWD}:/home/rstudio/workspace scrnaseqtools
+```
 
 ### Package structure
-
 ```r
 scRNAseqTools/
 ├── R/                 # Modular R functions
