@@ -164,3 +164,18 @@ devtools::document()
 devtools::install()
 library(scRNAseqTools)
 ```
+
+## Docker Image
+The complete analysis environment is available as a Docker image:
+[gentilegiorgia01/scrnaseqtools](https://hub.docker.com/r/gentilegiorgia01/scrnaseqtools)
+
+To run it locally:
+```bash
+docker pull gentilegiorgia01/scrnaseqtools:latest
+docker run -e PASSWORD=yourpassword -p 8787:8787 gentilegiorgia01/scrnaseqtools
+```
+Then access RStudio in your browser at:
+http://localhost:8787
+Login -> 
+Username: rstudio
+Password: yourpassword
