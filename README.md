@@ -167,11 +167,11 @@ Based on marker gene expression, cluster structure and annotations.
 ## Vignette
 A complete documented pipeline, including all code, explanation, and results step by step, is provided in:
 ```r
-vignettes/scrna_analysis_workflow.Rmd
+vignettes/output/scrna_analysis_workflow.Rmd
 ```
 And rendered as:
 ```r
-vignettes/scrna_analysis_workflow.html
+vignettes/output/scrna_analysis_workflow.html
 ```
 
 ## Installation & Use
