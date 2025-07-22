@@ -105,6 +105,11 @@ filter_unwanted_genes <- function(seurat_obj) {
   return(seurat_obj)
 }
 ```
+#####                                    Category Genes_Removed
+###### ribosomal_proteins       ribosomal_proteins            99
+###### ribosomal_pseudogenes ribosomal_pseudogenes             0
+###### mitochondrial_genes     mitochondrial_genes            13
+
 ### PCA — run_pca_analysis()
 Performs PCA and plots the variance explained by the top 20 PCs.
 ```r
@@ -146,7 +151,18 @@ annotate_cell_types <- function(seurat_obj) {
 }
 ```
 ### Tissue Origin Inference
-Based on marker gene expression, cluster structure, and annotations. Interpretative step using known markers, cluster distributions, and reference labels. Justified in the final report.
+Interpretative step using known markers, cluster distributions, and reference labels. Justified in the final report.
+```r
+results <- infer_tissue_origin(
+  seurat_obj,
+  save_path_markers = "output/top_markers_per_cluster.csv",
+  save_path_rds = "results/seurat_analysis_complete.rds"
+)
+```
+Based on marker gene expression, cluster structure and annotations. 
+
+######           B_cell 853; CMP 4; GMP 4; HSC_-G-CSF 34; Macrophage 1; Monocyte 3807; Neutrophils 7; NK_cell 474; Platelets 27; Pre-Bcell_CD34 50; T_cells 4933
+##### The inferred tissue of origin is: "Lymphoid tissue (e.g., lymph node, spleen, thymus)"
 
 ## Vignette
 A complete documented pipeline, including all code, explanation, and results step by step, is provided in:
