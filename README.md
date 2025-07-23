@@ -160,11 +160,27 @@ annotate_cell_types <- function(seurat_obj) {
 ### Tissue Origin Inference
 Interpretative step using known markers, cluster distributions, and reference labels. 
 ```r
-results <- infer_tissue_origin(
-  seurat_obj,
-  save_path_markers = "output/top_markers_per_cluster.csv",
-  save_path_rds = "results/seurat_analysis_complete.rds"
+markers <- Seurat::FindAllMarkers(seurat_obj, only.pos = TRUE, min.pct = 0.25, logfc.threshold = 0.25)
+ top_markers <- dplyr::group_by(markers, cluster) |>
+    dplyr::top_n(n = 5, wt = avg_log2FC)
 )
+cell_type_summary <- table(seurat_obj$cell_type)
+  print(cell_type_summary)
+ dominant <- names(sort(cell_type_summary, decreasing = TRUE))[1:3]
+
+  if (any(grepl("T_cell|B_cell|NK_cell", dominant))) {
+    tissue_hypothesis <- "Lymphoid tissue (e.g., lymph node, spleen, thymus)"
+  } else if (any(grepl("Monocyte|Macrophage|Dendritic", dominant))) {
+    tissue_hypothesis <- "Immune-rich tissue (e.g., blood, bone marrow)"
+  } else if (any(grepl("Fibroblast|Endothelial", dominant))) {
+    tissue_hypothesis <- "Connective/vascular tissue"
+  }
+  message("Tissue origin hypothesis: ", tissue_hypothesis)
+return(list(
+    top_markers = top_markers,
+    cell_type_summary = cell_type_summary,
+    tissue_hypothesis = tissue_hypothesis
+  ))
 ```
 Based on marker gene expression, cluster structure and annotations. 
 
