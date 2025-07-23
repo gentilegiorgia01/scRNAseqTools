@@ -1,8 +1,8 @@
 # scRNAseqTools - Project Programming approaches for bioinformatics July 2025
 
-This project provides a fully reproducible R package and Docker-based environment designed for the analysis of single-cell RNA sequencing data generated with 10X Genomics technology.
+This project provides a fully reproducible R package and Docker-based environment designed for the analysis of single-cell RNA sequencing data.
 
-It guides users through the complete workflow — from gene annotation and quality filtering to dimensionality reduction, clustering, cell type identification, and tissue origin prediction — using Seurat and Bioconductor packages
+It guides users through the complete workflow - from gene annotation and quality filtering to dimensionality reduction, clustering, cell type identification, and tissue origin prediction - using Seurat and Bioconductor packages
 
 ---
 
@@ -118,7 +118,14 @@ run_pca_analysis <- function(seurat_obj) {
   seurat_obj <- FindVariableFeatures(seurat_obj)
   seurat_obj <- ScaleData(seurat_obj)
   seurat_obj <- RunPCA(seurat_obj, npcs = 20)
-  ElbowPlot(seurat_obj, ndims = 20)
+    # Plot histogram
+  p <- ggplot2::ggplot(pca_df, ggplot2::aes(x = PC, y = Variance_Explained)) +
+    ggplot2::geom_bar(stat = "identity", fill = "steelblue", alpha = 0.7) +
+    ggplot2::labs(title = "Variance Explained by Principal Components",
+                  x = "Principal Component",
+                  y = "Proportion of Variance Explained") +
+    ggplot2::theme_minimal() +
+    ggplot2::scale_x_continuous(breaks = 1:n_pcs)
   return(seuratobj)
 }
 ```
@@ -151,7 +158,7 @@ annotate_cell_types <- function(seurat_obj) {
 }
 ```
 ### Tissue Origin Inference
-Interpretative step using known markers, cluster distributions, and reference labels. Justified in the final report.
+Interpretative step using known markers, cluster distributions, and reference labels. 
 ```r
 results <- infer_tissue_origin(
   seurat_obj,
