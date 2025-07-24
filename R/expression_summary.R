@@ -158,39 +158,8 @@ plot_expression_violin <- function(seurat_obj,
       axis.title.y = ggplot2::element_text(size = 12, face = "bold")
     )
 
-  # Add summary statistics if requested
-  if (show_stats) {
-    stats <- summary(genes_detected)
-    stats_text <- paste(
-      paste("Median:", round(stats["Median"], 0)),
-      paste("Mean:", round(stats["Mean"], 0)),
-      paste("Range:", round(stats["Min."], 0), "-", round(stats["Max."], 0)),
-      sep = "\n"
-    )
-
-    # Position for text annotation (top-left)
-    y_max <- max(genes_detected)
-    y_pos <- y_max * 0.95
-
-    p <- p + ggplot2::annotate(
-      "text",
-      x = 1,
-      y = y_pos,
-      label = stats_text,
-      hjust = 0,
-      vjust = 1,
-      size = 3.5,
-      color = "darkblue",
-      fontface = "bold"
-    )
-  }
-
-  return(p)
-}
 
 
-#' Alternative simplified violin plot function
-#'
 #' A simpler version using base R or minimal dependencies
 #'
 #' @param seurat_obj Seurat object with 'genes_detected' in metadata
